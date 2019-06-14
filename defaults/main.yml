@@ -1,0 +1,12 @@
+---
+# defaults file for apache
+
+# defines the list of packages to install for apache
+apache_packages:
+  - apache2
+
+# list of apache modules to enable
+apache_modules:
+  - rewrite
+
+apache_service: apache2

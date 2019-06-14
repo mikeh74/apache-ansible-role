@@ -1,0 +1,12 @@
+---
+- name: "Install Apache"
+  apt: "name={{ item }} state=present"
+  with_items: "{{ apache_packages }}"
+
+- name: Enable additional Apache modules.
+  apache2_module: "name={{ item }} state=present"
+  with_items: "{{ apache_modules }}"
+
+- name: "Start Apache"
+  service: "name={{ item }} state=started enabled=yes"
+  with_items: "{{ apache_service }}"
