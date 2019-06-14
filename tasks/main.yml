@@ -1,7 +1,8 @@
 ---
 - name: "Install Apache"
-  apt: "name={{ item }} state=present"
-  with_items: "{{ apache_packages }}"
+  apt:
+    name: "{{ apache_packages }}"
+    state: present
 
 - name: Enable additional Apache modules.
   apache2_module: "name={{ item }} state=present"
