@@ -1,4 +1,6 @@
 ---
 # Restart apache handler
 - name: restart apache
-  service: name=apache state=restarted
+  service:
+    name: "{{ apache_service }}"
+    state: restarted

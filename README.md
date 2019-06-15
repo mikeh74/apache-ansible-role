@@ -8,16 +8,28 @@ Any pre-requisites that may not be covered by Ansible itself or the role should 
 
 ## Role Variables
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+These are the default variables for this role
+
+### apache_packages
+
+A list of packages to install for apache
+
+### apache_modules
+
+A list of modules to enable
+
+### apache_service
+
+The name of the apache service to start and restart the service 
+
+Defaults to 'apache2'
 
 ## Example Playbook
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
     - hosts: servers
       roles:
-         - { role: username.rolename, x: 42 }
+         - role: apache
 
 ## License
 
-BSD
+MIT
