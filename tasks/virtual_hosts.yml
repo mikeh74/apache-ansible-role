@@ -1,0 +1,35 @@
+---
+- name: Add Apache virtualhost for {{ item.name }}
+  template:
+    src: "templates/virtualhost.conf.j2"
+    dest: "/etc/apache2/sites-available/{{ item.name }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart apache
+
+- name: Symlink virtualhost for {{ item.name }}
+  file:
+    src: "/etc/apache2/sites-available/{{ item.name }}.conf"
+    dest: "/etc/apache2/sites-enabled/{{ item.name }}.conf"
+    state: link
+  notify: restart apache
+
+- name: SSL config
+  block:
+    - name: Add Apache virtualhost for {{ item.name }}
+      template:
+        src: "templates/virtualhost-ssl.conf.j2"
+        dest: "/etc/apache2/sites-available/{{ item.name }}-ssl.conf"
+        owner: root
+        group: root
+        mode: 0644
+      notify: restart apache
+
+    - name: Symlink virtualhost for {{ item.name }}
+      file:
+        src: "/etc/apache2/sites-available/{{ item.name }}-ssl.conf"
+        dest: "/etc/apache2/sites-enabled/{{ item.name }}-ssl.conf"
+        state: link
+      notify: restart apache
+  when: ssl_cert_path is defined and ssl_key_file is defined

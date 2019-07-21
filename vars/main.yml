@@ -1,2 +1,8 @@
 ---
 # vars file for apache
+
+virtual_hosts:
+  - name: test
+    server_name: example.com
+    server_admin: test@example.com
+    document_root: /var/www/html/

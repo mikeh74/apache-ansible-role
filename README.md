@@ -1,24 +1,30 @@
 # Apache2 role
 
-This is an ansible role for installing apache2
+This is an ansible role for installing apache2 on Ubuntu
 
 ## Requirements
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+None
 
 ## Role Variables
 
 These are the default variables for this role
 
-### apache_packages
+```yaml
+apache_packages: []
+```
 
 A list of packages to install for apache
 
-### apache_modules
+```yaml
+apache_modules: []
+```
 
 A list of modules to enable
 
-### apache_service
+```yaml
+apache_service: string
+```
 
 The name of the apache service to start and restart the service 
 
@@ -26,9 +32,11 @@ Defaults to 'apache2'
 
 ## Example Playbook
 
+```yaml
     - hosts: servers
       roles:
          - role: apache
+```
 
 ## License
 
