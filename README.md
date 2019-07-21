@@ -33,9 +33,9 @@ Defaults to 'apache2'
 ## Example Playbook
 
 ```yaml
-    - hosts: servers
-      roles:
-         - role: apache
+  - hosts: servers
+    roles:
+        - role: apache
 ```
 
 ## License
