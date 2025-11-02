@@ -1,23 +1,82 @@
 ---
-- name: "Install Apache"
-  apt:
+- name: Include OS-specific variables
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+  failed_when: false
+
+- name: Update package cache (Debian/Ubuntu)
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: "{{ apache_cache_valid_time }}"
+  when:
+    - apache_update_cache | bool
+    - ansible_os_family == "Debian"
+
+- name: Install Apache packages
+  ansible.builtin.package:
     name: "{{ apache_packages }}"
     state: present
 
-- name: Enable additional Apache modules.
-  apache2_module:
+- name: Configure Apache security settings
+  ansible.builtin.lineinfile:
+    path: /etc/apache2/conf-available/security.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    backup: true
+  loop:
+    - regexp: "^ServerTokens"
+      line: "ServerTokens {{ apache_server_tokens }}"
+    - regexp: "^ServerSignature"
+      line: "ServerSignature {{ apache_server_signature }}"
+  notify: restart apache
+  when: ansible_os_family == "Debian"
+
+- name: Enable Apache modules
+  community.general.apache2_module:
     name: "{{ item }}"
     state: present
-  with_items: "{{ apache_modules }}"
+  loop: "{{ apache_modules }}"
+  notify: restart apache
+  when: ansible_os_family == "Debian"
 
-- name: Start Apache
-  service:
-    name: "{{ item }}"
-    state: started
-    enabled: yes
-  with_items: "{{ apache_service }}"
+- name: Remove default Apache virtual host
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apache2/sites-enabled/000-default.conf
+    - /etc/apache2/sites-enabled/default-ssl.conf
+  notify: restart apache
+  when:
+    - apache_remove_default_vhost | bool
+    - ansible_os_family == "Debian"
 
-- name: Add virtual hosts
-  include_tasks: virtual_hosts.yml
-  with_items: "{{ virtual_hosts }}"
-  when: virtual_hosts is defined
+- name: Configure firewall for Apache
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    permanent: true
+    state: enabled
+    zone: "{{ apache_firewall_zone }}"
+  loop:
+    - http
+    - https
+  notify: reload firewalld
+  when:
+    - apache_configure_firewall | bool
+    - ansible_facts['os_family'] == "RedHat"
+
+- name: Start and enable Apache service
+  ansible.builtin.systemd:
+    name: "{{ apache_service }}"
+    state: "{{ apache_state }}"
+    enabled: "{{ apache_enabled }}"
+    daemon_reload: true
+
+- name: Create virtual hosts
+  ansible.builtin.include_tasks: virtual_hosts.yml
+  loop: "{{ virtual_hosts }}"
+  loop_control:
+    loop_var: vhost
+  when:
+    - apache_create_vhosts | bool
+    - virtual_hosts is defined
+    - virtual_hosts | length > 0

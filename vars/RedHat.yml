@@ -1,0 +1,20 @@
+---
+# RedHat/CentOS/Rocky/AlmaLinux specific variables
+
+apache_packages:
+  - httpd
+  - mod_ssl
+
+apache_service: httpd
+
+apache_config_path: /etc/httpd
+apache_sites_available_path: /etc/httpd/conf.d
+apache_sites_enabled_path: /etc/httpd/conf.d
+apache_mods_available_path: /etc/httpd/conf.modules.d
+apache_mods_enabled_path: /etc/httpd/conf.modules.d
+
+apache_user: apache
+apache_group: apache
+
+apache_log_dir: /var/log/httpd
+apache_pid_file: /var/run/httpd/httpd.pid

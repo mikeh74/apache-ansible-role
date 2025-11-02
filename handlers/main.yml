@@ -1,6 +1,19 @@
 ---
-# Restart apache handler
-- name: restart apache
-  service:
+- name: Restart apache
+  ansible.builtin.systemd:
     name: "{{ apache_service }}"
     state: restarted
+    daemon_reload: true
+  listen: restart apache
+
+- name: Reload apache
+  ansible.builtin.systemd:
+    name: "{{ apache_service }}"
+    state: reloaded
+  listen: reload apache
+
+- name: Reload firewalld
+  ansible.builtin.systemd:
+    name: firewalld
+    state: reloaded
+  listen: reload firewalld

@@ -1,15 +1,39 @@
-<VirtualHost *:80>
+<VirtualHost {{ vhost.listen_ip | default(apache_listen_ip) }}:{{ vhost.listen_port | default(apache_listen_port) }}>
+    ServerName {{ vhost.server_name }}
+    {% if vhost.server_aliases is defined %}
+    {% for alias in vhost.server_aliases %}
+    ServerAlias {{ alias }}
+    {% endfor %}
+    {% endif %}
+    ServerAdmin {{ vhost.server_admin | default('webmaster@localhost') }}
+    DocumentRoot {{ vhost.document_root }}
 
-    ServerAdmin webmaster@localhost
-    DocumentRoot {{ item.document_root }}
+    # Logging
+    ErrorLog ${APACHE_LOG_DIR}/{{ vhost.name }}_error.log
+    CustomLog ${APACHE_LOG_DIR}/{{ vhost.name }}_access.log combined
 
-    ErrorLog ${APACHE_LOG_DIR}/error.log
-    CustomLog ${APACHE_LOG_DIR}/access.log combined
+    # Security headers
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
-    <Directory {{ item.document_root }}>
-        AllowOverride All
-        order allow,deny
-        allow from all
+    # Directory configuration
+    <Directory {{ vhost.document_root }}>
+        Options {{ vhost.options | default('Indexes FollowSymLinks') }}
+        AllowOverride {{ vhost.allow_override | default('All') }}
+        Require all granted
+        {% if vhost.extra_parameters is defined %}
+        {{ vhost.extra_parameters | indent(8) }}
+        {% endif %}
     </Directory>
 
+    {% if vhost.custom_log is defined %}
+    CustomLog {{ vhost.custom_log }} {{ vhost.custom_log_format | default('combined') }}
+    {% endif %}
+
+    {% if vhost.extra_config is defined %}
+    {{ vhost.extra_config | indent(4) }}
+    {% endif %}
 </VirtualHost>

@@ -1,35 +1,62 @@
 ---
-- name: Add Apache virtualhost for {{ item.name }}
-  template:
-    src: "templates/virtualhost.conf.j2"
-    dest: "/etc/apache2/sites-available/{{ item.name }}.conf"
+- name: Create document root for {{ vhost.name }}
+  ansible.builtin.file:
+    path: "{{ vhost.document_root }}"
+    state: directory
+    owner: "{{ apache_user }}"
+    group: "{{ apache_group }}"
+    mode: "0755"
+  when: vhost.document_root is defined
+
+- name: Create Apache virtual host for {{ vhost.name }}
+  ansible.builtin.template:
+    src: virtualhost.conf.j2
+    dest: "{{ apache_sites_available_path }}/{{ vhost.name }}.conf"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
+    backup: true
   notify: restart apache
 
-- name: Symlink virtualhost for {{ item.name }}
-  file:
-    src: "/etc/apache2/sites-available/{{ item.name }}.conf"
-    dest: "/etc/apache2/sites-enabled/{{ item.name }}.conf"
+- name: Enable virtual host for {{ vhost.name }}
+  ansible.builtin.file:
+    src: "{{ apache_sites_available_path }}/{{ vhost.name }}.conf"
+    dest: "{{ apache_sites_enabled_path }}/{{ vhost.name }}.conf"
     state: link
   notify: restart apache
+  when: ansible_os_family == "Debian"
 
-- name: SSL config
+- name: Configure SSL virtual host
+  when:
+    - vhost.ssl_enabled is defined
+    - vhost.ssl_enabled | bool
+    - (vhost.ssl_cert_path is defined or ssl_cert_path is defined)
+    - (vhost.ssl_key_path is defined or ssl_key_file is defined)
   block:
-    - name: Add Apache virtualhost for {{ item.name }}
-      template:
-        src: "templates/virtualhost-ssl.conf.j2"
-        dest: "/etc/apache2/sites-available/{{ item.name }}-ssl.conf"
+    - name: Create SSL Apache virtual host for {{ vhost.name }}
+      ansible.builtin.template:
+        src: virtualhost-ssl.conf.j2
+        dest: "{{ apache_sites_available_path }}/{{ vhost.name }}-ssl.conf"
         owner: root
         group: root
-        mode: 0644
+        mode: "0644"
+        backup: true
       notify: restart apache
 
-    - name: Symlink virtualhost for {{ item.name }}
-      file:
-        src: "/etc/apache2/sites-available/{{ item.name }}-ssl.conf"
-        dest: "/etc/apache2/sites-enabled/{{ item.name }}-ssl.conf"
+    - name: Enable SSL virtual host for {{ vhost.name }}
+      ansible.builtin.file:
+        src: "{{ apache_sites_available_path }}/{{ vhost.name }}-ssl.conf"
+        dest: "{{ apache_sites_enabled_path }}/{{ vhost.name }}-ssl.conf"
         state: link
       notify: restart apache
-  when: ssl_cert_path is defined and ssl_key_file is defined
+      when: ansible_os_family == "Debian"
+
+    - name: Verify SSL certificate files exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: ssl_files
+      loop:
+        - "{{ vhost.ssl_cert_path | default(ssl_cert_path) }}"
+        - "{{ vhost.ssl_key_path | default(ssl_key_file) }}"
+      failed_when: not ssl_files.results | map(attribute='stat.exists') | list | min
+      when: vhost.ssl_enabled | default(false) | bool

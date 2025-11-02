@@ -1,12 +1,48 @@
 ---
 # defaults file for apache
 
-# defines the list of packages to install for apache
+# Package management
 apache_packages:
   - apache2
 
-# list of apache modules to enable
+# Enable package cache update before installation
+apache_update_cache: true
+apache_cache_valid_time: 3600
+
+# Apache service configuration
+apache_service: apache2
+apache_state: started
+apache_enabled: true
+
+# Apache modules to enable
 apache_modules:
   - rewrite
+  - ssl
+  - headers
 
-apache_service: apache2
+# Apache configuration
+apache_listen_ip: "*"
+apache_listen_port: 80
+apache_listen_port_ssl: 443
+
+# Security settings
+apache_server_tokens: "Prod"
+apache_server_signature: "Off"
+
+# Default virtual host settings
+apache_remove_default_vhost: false
+apache_create_vhosts: true
+
+# Global Apache settings
+apache_global_vhost_settings: |
+  DirectoryIndex index.php index.html index.htm
+
+# Virtual hosts configuration
+virtual_hosts: []
+# SSL configuration
+apache_ssl_protocol: "all -SSLv3 -TLSv1 -TLSv1.1"
+apache_ssl_cipher_suite: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384"
+
+# Firewall settings
+apache_configure_firewall: false
+apache_firewall_zone: "public"

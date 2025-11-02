@@ -1,21 +1,35 @@
 ---
 galaxy_info:
+  role_name: apache
+  namespace: mhorrocks
   author: mhorrocks
-  description: Install Apache2 on Ubuntu
+  description: Install and configure Apache2 web server
 
   license: MIT
 
-  min_ansible_version: 2.4
+  min_ansible_version: "2.12"
 
   platforms:
     - name: Ubuntu
       versions:
-        - 18.04
-        - 16.04
+        - focal
+        - jammy
+        - noble
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+    - name: EL
+      versions:
+        - "8"
+        - "9"
 
   galaxy_tags:
     - webserver
     - apache
-    - ubuntu
+    - httpd
+    - web
+    - ssl
+    - virtualhost
 
 dependencies: []

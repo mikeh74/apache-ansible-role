@@ -1,20 +1,83 @@
 ---
 dependency:
   name: galaxy
+  options:
+    requirements-file: requirements.yml
+    
 driver:
   name: docker
-lint:
-  name: yamllint
-  options:
-    config-file: molecule/default/yaml-lint.yml
+
 platforms:
-  - name: instance
-    image: ubuntu:18.04
+  - name: ubuntu-22-04
+    image: ubuntu:22.04
+    pre_build_image: true
+    privileged: true
+    command: /lib/systemd/systemd
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    tmpfs:
+      - /run
+      - /tmp
+    groups:
+      - ubuntu_hosts
+      
+  - name: ubuntu-20-04
+    image: ubuntu:20.04
+    pre_build_image: true
+    privileged: true
+    command: /lib/systemd/systemd
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    tmpfs:
+      - /run
+      - /tmp
+    groups:
+      - ubuntu_hosts
+
 provisioner:
   name: ansible
-  lint:
-    name: ansible-lint
+  config_options:
+    defaults:
+      interpreter_python: auto_silent
+      callback_whitelist: profile_tasks, timer, yaml
+      stdout_callback: yaml
+  inventory:
+    host_vars:
+      ubuntu-22-04:
+        virtual_hosts:
+          - name: test-site
+            server_name: test.example.com
+            server_admin: admin@example.com
+            document_root: /var/www/html/test
+            ssl_enabled: false
+      ubuntu-20-04:
+        virtual_hosts:
+          - name: test-site
+            server_name: test.example.com
+            server_admin: admin@example.com
+            document_root: /var/www/html/test
+            ssl_enabled: false
+
 verifier:
-  name: testinfra
-  lint:
-    name: flake8
+  name: ansible
+
+scenario:
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - side_effect
+    - verify
+    - cleanup
+    - destroy

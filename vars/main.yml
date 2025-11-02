@@ -1,8 +1,38 @@
 ---
-# vars file for apache
+# Example virtual hosts configuration
+# This file shows examples - move to defaults/main.yml or host_vars for actual use
 
 virtual_hosts:
-  - name: test
+  - name: example
     server_name: example.com
-    server_admin: test@example.com
-    document_root: /var/www/html/
+    server_aliases:
+      - www.example.com
+    server_admin: admin@example.com
+    document_root: /var/www/html/example
+    listen_port: 80
+    ssl_enabled: false
+    options: "Indexes FollowSymLinks"
+    allow_override: "All"
+    extra_config: |
+      # Custom configuration for this vhost
+      <LocationMatch "^/(status|info)">
+          Require ip 127.0.0.1
+      </LocationMatch>
+
+  - name: secure-example
+    server_name: secure.example.com
+    server_admin: admin@example.com
+    document_root: /var/www/html/secure
+    listen_port: 80
+    listen_port_ssl: 443
+    ssl_enabled: true
+    ssl_cert_path: /etc/ssl/certs/example.crt
+    ssl_key_path: /etc/ssl/private/example.key
+    # ssl_chain_file: /etc/ssl/certs/example-chain.crt
+    options: "FollowSymLinks"
+    allow_override: "All"
+    extra_parameters: |
+      # PHP-FPM configuration
+      <FilesMatch \.php$>
+          SetHandler "proxy:unix:/var/run/php/php8.1-fpm.sock|fcgi://localhost/"
+      </FilesMatch>

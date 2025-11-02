@@ -1,0 +1,63 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  gather_facts: true
+  
+  tasks:
+    - name: Check if Apache is installed
+      ansible.builtin.package_facts:
+        manager: auto
+      
+    - name: Verify Apache package is installed
+      ansible.builtin.assert:
+        that:
+          - "'apache2' in ansible_facts.packages"
+        fail_msg: "Apache2 package is not installed"
+        success_msg: "Apache2 package is installed"
+      when: ansible_os_family == "Debian"
+    
+    - name: Check Apache service status
+      ansible.builtin.systemd:
+        name: apache2
+      register: apache_service_status
+      when: ansible_os_family == "Debian"
+    
+    - name: Verify Apache service is running
+      ansible.builtin.assert:
+        that:
+          - apache_service_status.status.ActiveState == "active"
+        fail_msg: "Apache service is not running"
+        success_msg: "Apache service is running"
+      when: ansible_os_family == "Debian"
+    
+    - name: Check if Apache is listening on port 80
+      ansible.builtin.wait_for:
+        port: 80
+        host: 127.0.0.1
+        timeout: 10
+      
+    - name: Test Apache response
+      ansible.builtin.uri:
+        url: http://127.0.0.1/
+        method: GET
+        status_code: [200, 403]  # 403 is OK if no default site
+      register: apache_response
+      
+    - name: Verify virtual host configuration files exist
+      ansible.builtin.stat:
+        path: "/etc/apache2/sites-available/{{ item.name }}.conf"
+      register: vhost_files
+      loop: "{{ virtual_hosts | default([]) }}"
+      when: ansible_os_family == "Debian"
+      
+    - name: Verify virtual host files exist
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+        fail_msg: "Virtual host configuration file does not exist: {{ item.item.name }}"
+        success_msg: "Virtual host configuration file exists: {{ item.item.name }}"
+      loop: "{{ vhost_files.results | default([]) }}"
+      when: 
+        - ansible_os_family == "Debian"
+        - vhost_files.results is defined
