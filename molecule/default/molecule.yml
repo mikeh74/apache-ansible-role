@@ -3,7 +3,7 @@ dependency:
   name: galaxy
   options:
     requirements-file: requirements.yml
-    
+
 driver:
   name: docker
 
@@ -23,7 +23,7 @@ platforms:
       - /tmp
     groups:
       - ubuntu_hosts
-      
+
   - name: ubuntu-20-04
     image: ubuntu:20.04
     pre_build_image: true

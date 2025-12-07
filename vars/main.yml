@@ -1,6 +1,7 @@
 ---
 # Example virtual hosts configuration
-# This file shows examples - move to defaults/main.yml or host_vars for actual use
+# This file shows examples - move to defaults/main.yml or host_vars
+# for actual use
 
 virtual_hosts:
   - name: example

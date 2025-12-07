@@ -58,5 +58,6 @@
       loop:
         - "{{ vhost.ssl_cert_path | default(ssl_cert_path) }}"
         - "{{ vhost.ssl_key_path | default(ssl_key_file) }}"
-      failed_when: not ssl_files.results | map(attribute='stat.exists') | list | min
+      failed_when: >-
+        not ssl_files.results | map(attribute='stat.exists') | list | min
       when: vhost.ssl_enabled | default(false) | bool
