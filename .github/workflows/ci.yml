@@ -3,9 +3,9 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
   schedule:
     - cron: '0 2 * * 0'  # Weekly run
 
@@ -78,7 +78,8 @@ jobs:
 
       - name: Install semantic-release
         run: |
-          npm install -g semantic-release @semantic-release/github @semantic-release/git
+          npm install -g semantic-release @semantic-release/github \
+            @semantic-release/git
 
       - name: Release
         env:
